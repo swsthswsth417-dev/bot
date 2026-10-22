@@ -1,16 +1,13 @@
 import telebot, re, time, json, os
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
 TOKEN = os.getenv("TOKEN")
 MAIN_ADMIN = 8836904278
 MY_NUMBER = "01031949696"
 CHANNEL = "@shmaopoj"
 ESBAT_LINK = "https://t.me/shmaopoj"
-
 bot = telebot.TeleBot(TOKEN, threaded=False)
 banned = set()
 ADMINS_FILE = "admins.json"
-
 def load_admins():
     if os.path.exists(ADMINS_FILE):
         try:
@@ -18,23 +15,15 @@ def load_admins():
                 return set(json.load(f))
         except: pass
     return {MAIN_ADMIN}
-
 def save_admins():
     with open(ADMINS_FILE, "w") as f:
         json.dump(list(ADMINS), f)
-
 ADMINS = load_admins()
 def is_admin(uid): return uid in ADMINS
-
 def main_kb():
     kb = InlineKeyboardMarkup(row_width=1)
-    kb.add(
-        InlineKeyboardButton("📦 طلب الاشتراك", callback_data="order"),
-        InlineKeyboardButton("📹 حجز فيديوكول مع مدام مريم", callback_data="video_call"),
-        InlineKeyboardButton("✅ اثباتاتي", url=ESBAT_LINK)
-    )
+    kb.add(InlineKeyboardButton("📦 طلب الاشتراك", callback_data="order"),InlineKeyboardButton("📹 حجز فيديوكول مع مدام مريم", callback_data="video_call"),InlineKeyboardButton("✅ اثباتاتي", url=ESBAT_LINK))
     return kb
-
 @bot.message_handler(commands=['start'])
 def start(m):
     if is_admin(m.chat.id):
@@ -42,7 +31,6 @@ def start(m):
     else:
         if m.chat.id in banned: return
         bot.send_message(m.chat.id, "مرحب بيك ⭐\nاختار من تحت 👇", reply_markup=main_kb())
-
 @bot.callback_query_handler(func=lambda c: True)
 def all_callbacks(c):
     name = c.from_user.first_name or "صديقي"
@@ -54,7 +42,6 @@ def all_callbacks(c):
         bot.send_message(c.message.chat.id, f"للحجز فيديو كول مع مدام مريم حول 10 جنيه رسوم الاشتراك على فودافون كاش {MY_NUMBER} وبعت اسكرين هنا ✅\nالرقم: {MY_NUMBER}")
         for aid in ADMINS: bot.send_message(aid, f"📹 حجز فيديوكول\nID: {c.from_user.id}\n{user_display}")
     bot.answer_callback_query(c.id)
-
 @bot.message_handler(commands=['ban','unban','r','post','addadmin','deladmin','admins'])
 def admin_cmds(m):
     if not is_admin(m.chat.id): return
@@ -75,7 +62,6 @@ def admin_cmds(m):
         bot.send_message(uid, msg); bot.send_message(m.chat.id, "بعت ✅")
     elif text.startswith("/post"):
         bot.send_message(CHANNEL, text.replace("/post","").strip()); bot.send_message(m.chat.id, "نزل ✅")
-
 @bot.message_handler(func=lambda m: True)
 def all_msg(m):
     if is_admin(m.chat.id) and m.reply_to_message:
@@ -85,7 +71,6 @@ def all_msg(m):
         if m.chat.id in banned: return
         user_display = f"@{m.from_user.username}" if m.from_user.username else f"{m.from_user.first_name}"
         for aid in ADMINS: bot.send_message(aid, f"ID: {m.chat.id}\n{user_display}\n\n{m.text}")
-
 while True:
     try:
         bot.infinity_polling(timeout=60, long_polling_timeout=60)
